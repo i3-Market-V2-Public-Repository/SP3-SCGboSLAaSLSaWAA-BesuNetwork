@@ -1,16 +1,19 @@
+variables:
+  DOCKER_DAEMON_OPTIONS: "--insecure-registry=$DOCKER_REGISTRY"
+
 build:
   stage: build
   image:
     name: docker
   services:
-    - name: docker:dind
-      command: ["--insecure-registry=$NEXUS_REGISTRY"]
+      - name: docker:dind
+        entrypoint: [ "sh", "-c", "dockerd-entrypoint.sh $DOCKER_DAEMON_OPTIONS" ]
   before_script:
-    - echo "$NEXUS_PASSWORD" | docker login -u "$NEXUS_USER" --password-stdin "$NEXUS_REGISTRY" 
+    - echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin "$DOCKER_REGISTRY"
   script:
-    - docker build -t $NEXUS_REGISTRY/besu-network .
-    - docker push $NEXUS_REGISTRY/besu-network
+    - docker build -t $DOCKER_REGISTRY/besu-network:$CI_COMMIT_TAG .
+    - docker push $DOCKER_REGISTRY/besu-network:$CI_COMMIT_TAG
   after_script:
-    - docker logout $NEXUS_REGISTRY
+    - docker logout "$DOCKER_REGISTRY"
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_TAG
