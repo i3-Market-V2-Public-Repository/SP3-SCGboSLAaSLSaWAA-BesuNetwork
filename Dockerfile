@@ -1,10 +1,12 @@
-FROM hyperledger/besu:22.1.1
+FROM hyperledger/besu:22.10
 
 WORKDIR /besu
 
 USER root
 
-RUN chown -R besu:besu /besu
+RUN chown -R besu:besu /besu &&\
+    apt update &&\
+    apt upgrade -y
 
 USER besu
 
